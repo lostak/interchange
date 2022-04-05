@@ -92,3 +92,14 @@ func (book *OrderBook) inserOrder(order Order, ordering Ordering) {
 		book.Orders = append(book.Orders, &order)
 	}
 }
+
+func (book OrderBook) GetOrderFromID(id int32) (Order, error) {
+	for _, order := range book.Orders {
+		if order.Id == id {
+			return *order, nil
+		}
+	}
+	return Order{}, ErrOrderNotFound
+}
+
+
