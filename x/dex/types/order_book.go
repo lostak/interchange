@@ -102,4 +102,13 @@ func (book OrderBook) GetOrderFromID(id int32) (Order, error) {
 	return Order{}, ErrOrderNotFound
 }
 
+func (book *OrderBook) RemoveOrderFromID(id int32) error {
+	for i, order := range book.Orders {
+		if order.Id == id {
+			book.Orders = append(book.Orders[:i], book.Orders[i+1:]...)
+			return nil
+		}
+	}
+	return ErrOrderNotFound
+}
 
