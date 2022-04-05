@@ -159,7 +159,23 @@ func (k Keeper) OnAcknowledgementBuyOrderPacket(ctx sdk.Context, packet channelt
 // OnTimeoutBuyOrderPacket responds to the case where a packet has not been transmitted because of a timeout
 func (k Keeper) OnTimeoutBuyOrderPacket(ctx sdk.Context, packet channeltypes.Packet, data types.BuyOrderPacketData) error {
 
-	// TODO: packet timeout logic
 
+	//in case of error mint back the native token
+	receiver, err := sdk.AccAddressFromBech32(data.Buyer)
+	if err != nil {
+		return err
+	}
+
+	if err := k.SafeMint(
+		ctx,
+		packet.SourcePort,
+		packet.SourceChannel,
+		receiver,
+		data.PriceDenom,
+		data.Amount*data.Price,
+	); err != nil {
+		return err
+	}
+	
 	return nil
 }
