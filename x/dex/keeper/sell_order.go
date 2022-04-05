@@ -73,7 +73,41 @@ func (k Keeper) OnRecvSellOrderPacket(ctx sdk.Context, packet channeltypes.Packe
 		return packetAck, err
 	}
 
-	// TODO: packet reception logic
+	pairIndex := types.OrderBookIndex(packet.SourcePort, packet.SourceChannel, data.AmountDenom, data.PriceDenom)
+	book, found := k.GetBuyOrderBook(ctx, pairIndex)
+	if !found {
+		return packetAck, errors.New("the pair doesn't exist")
+	}
+
+	//fill sell order
+	remaining, liquidated, gain, _ := book.FillSellOrder(types.Order {
+		Amount:	data.Amount,
+		Price:	data.Price,
+	})
+	//return remaining amount and gains
+	packetAck.RemainingAmount = remaining.Amount
+	packetAck.Gain = gain
+	//resolve denom
+	//check this chain first
+	finalAmountDenom, saved := k.OriginalDenom(ctx, packet.DestinationPort, packet.DestinationChannel, data.AmountDenom)
+	if !saved {
+		//not this chain, use voucher as denom
+		finalAmountDenom = VoucherDenom(packet.SourcePort, packet.SourceChannel, data.AmountDenom)
+	}
+	//dispatch liquidated buy orders
+	for _, liquidation := range liquidated {
+		liquidation := liquidation
+		addr, err := sdk.AccAddressFromBech32(liquidation.Creator)
+		if err != nil {
+			return packetAck, err
+		}
+		if err := k.SafeMint(ctx, packet.DestinationPort, packet.DestinationChannel, addr, finalAmountDenom, liquidation.Amount); err != nil {
+			return packetAck, err 
+		}
+	}
+
+	//save the new order book
+	k.SetBuyOrderBook(ctx, book)
 
 	return packetAck, nil
 }

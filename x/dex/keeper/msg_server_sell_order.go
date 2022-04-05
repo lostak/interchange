@@ -11,11 +11,27 @@ import (
 func (k msgServer) SendSellOrder(goCtx context.Context, msg *types.MsgSendSellOrder) (*types.MsgSendSellOrderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// TODO: logic before transmitting the packet
+	// if an order book doesn't exist, throw an error
+	_, found := types.OrderBookIndex(msg.Port, msg.ChannelID, msg.AmountDenom, msg.PriceDenom)
+	if !found {
+		return &types.MsgSendSellOrderResponse{}, errors.New("the pair doesn't exist")
+	}
 
-	// Construct the packet
+	//Get sender's address
+	sender, err := sdk.AccAddressFromBech32(msg.Creator)
+	if err != nil {
+		return &types.MsgSendSellOrderResponse{}, err
+	}
+
+	//Use SafeBurn to ensure no new native tokens are minted
+	if err := k.SafeBurn(ctx, msg.Port, msg.ChannelID, sender, msg.AmountDenom, msg.Amount); err != nil {
+		return &types.MsgSendSellOrderResponse{}, err
+	}
+
+	// svae the voucher received on the other chanin, to have the ability to resolve it into the original denom
+	k.SaveVoucherDenom(ctx, msg.Port, msg.Channel, msg.AmountDenom)
 	var packet types.SellOrderPacketData
-
+	packet.Seller = msg.Creator
 	packet.AmountDenom = msg.AmountDenom
 	packet.Amount = msg.Amount
 	packet.PriceDenom = msg.PriceDenom
