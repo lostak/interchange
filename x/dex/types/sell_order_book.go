@@ -45,3 +45,51 @@ func (s *SellOrderBook) FillBuyOrder(order Order) (
 	return remainingBuyOrder, liquidatedList, totalPurchase, filled
 }
 
+func (s *SellOrderBook) LiquidateFromBuyOrder(order Order) (
+	remainingBuyOrder Order,
+	liquidatedSellOrder Order,
+	purchase int32,
+	match bool,
+	filled bool,
+) {
+	remainingBuyOrder = order
+
+	//no match if no order
+	orderCount := len(s.Book.Orders)
+	if orderCount == 0 {
+		return order, liquidatedSellOrder, purchase, false, false
+	}
+
+	// check if match
+	lowestAsk := s.Book.Orders[orderCount-1]
+	if order.Price <lowestAsk.Price {
+		return order, liquidatedSellOrder, purchase, false, false
+	}
+
+	liquidatedSellOrder = *lowestAsk
+
+	// check if buy order can be entirely filled
+	if lowestAsk.Amount >= order.Amount {
+		remainingBuyOrder.Amount = 0
+		liquidatedSellOrder.Amount = order.Amount
+		purchase = order.Amount
+
+		// remove lowest ask if it has been entirely liquidated
+		lowestAsk.Amount -= order.Amount
+		if lowestAsk.Amount == 0 {
+			s.Book.Orders = s.Book.Orders[:orderCount-1]
+		} else {
+			s.Book.Orders[orderCount-1] = lowestAsk
+		}
+
+		return remainingBuyOrder, liquidatedSellOrder, purchase, true, true
+	}
+
+	// not entirely filled
+	purchase = lowestAsk.Amount
+	s.Book.Orders = s.Book.Orders[:orderCount-1]
+	remainingBuyOrder.Amount -= lowestAsk.Amount
+
+	return remainingBuyOrder, liquidatedSellOrder, purchase, true, false
+}
+
