@@ -91,4 +91,4 @@ func (book *OrderBook) inserOrder(order Order, ordering Ordering) {
 	} else {
 		book.Orders = append(book.Orders, &order)
 	}
-
+}

@@ -36,7 +36,7 @@ func (k keeper) BurnTokens(ctx sdk.Context, sender sdk.AccAddress, tokens sdk.Co
 	}
 
 	if err := k.bankKeeper.BurnCoins(
-		ctx, type.ModuleName, sdk.NewCoins(tokens),
+		ctx, types.ModuleName, sdk.NewCoins(tokens),
 	); err != nil {
 		// should not happen
 		panic(fmt.Sprintf("cannot burn coins after successful send to a module account: %v", err))
