@@ -83,10 +83,21 @@ func (k Keeper) OnRecvBuyOrderPacket(ctx sdk.Context, packet channeltypes.Packet
 func (k Keeper) OnAcknowledgementBuyOrderPacket(ctx sdk.Context, packet channeltypes.Packet, data types.BuyOrderPacketData, ack channeltypes.Acknowledgement) error {
 	switch dispatchedAck := ack.Response.(type) {
 	case *channeltypes.Acknowledgement_Error:
-
-		// TODO: failed acknowledgement logic
-		_ = dispatchedAck.Error
-
+		// in case of error we mint back the native token
+		receiver, err := sdk.AccAddressFromBech32(data.Buyer)
+		if err != nil {
+			return err
+		}
+		if err := k.SafeMint(
+			ctx,
+			packet.SourcePort,
+			packet.SourceChannel,
+			receiver,
+			data.PriceDenom,
+			data.Amount*data.Price,
+		); err != nil {
+			return err
+		}
 		return nil
 	case *channeltypes.Acknowledgement_Result:
 		// Decode the packet acknowledgment
@@ -97,8 +108,47 @@ func (k Keeper) OnAcknowledgementBuyOrderPacket(ctx sdk.Context, packet channelt
 			return errors.New("cannot unmarshal acknowledgment")
 		}
 
-		// TODO: successful acknowledgement logic
-
+		//Get the sell order book
+		pairIndex := types.OrderBookIndex(packet.SourcePort, packet.SourceChannel, data.AmountDenom, data.PriceDenom)
+		book, found := k.GetBuyOrderBook(ctx, pairIndex)
+		if !found {
+			panic("buy order book must exist")
+		}
+		// append the remaining amount of the order
+		if packetAck.RemainingAmount > 0 {
+			_, err := book.AppendOrder(
+				data.Buyer,
+				packetAck.RemainingAmount,
+				data.Price,
+			)
+			if err != nil {
+				return err
+			}
+			// save the new order book
+			k.SetBuyOrderBook(ctx, book)
+		}
+		// mint the purchase
+		if packetAck.Purchase > 0 {
+			receiver, err := sdk.AccAddressFromBech32(data.Buyer)
+			if err != nil {
+				return err
+			}
+			finalAmountDenom, saved := k.OrginalDenom(ctx, packet.SourcePort, packet.SourceChannel, data.AmountDenom)
+			if !saved {
+				// not from this chain - use voucher as denom
+				finalAmountDenom = VoucherDenom(packet.DestinationPort, packet.DestinationChannel, data.AmountDenom)
+			}
+			if err := k.SafeMint(
+				ctx,
+				packet.SourcePort,
+				packet.SourceChannel,
+				receiver,
+				finalAmountDenom,
+				packetAck.Purchase,
+			); err != nil {
+				return err
+			}
+		}
 		return nil
 	default:
 		// The counter-party module doesn't implement the correct acknowledgment format
