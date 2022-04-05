@@ -47374,6 +47374,12 @@ definitions:
         type: string
       priceDenom:
         type: string
+  lostak.interchange.dex.MsgCancelBuyOrderResponse:
+    type: object
+  lostak.interchange.dex.MsgCancelSellOrderResponse:
+    type: object
+  lostak.interchange.dex.MsgPortResponse:
+    type: object
   lostak.interchange.dex.MsgSendBuyOrderResponse:
     type: object
   lostak.interchange.dex.MsgSendCreatePairResponse:

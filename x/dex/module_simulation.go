@@ -24,7 +24,19 @@ var (
 )
 
 const (
-// this line is used by starport scaffolding # simapp/module/const
+	opWeightMsgPort = "op_weight_msg_create_chain"
+	// TODO: Determine the simulation weight value
+	defaultWeightMsgPort int = 100
+
+	opWeightMsgCancelSellOrder = "op_weight_msg_create_chain"
+	// TODO: Determine the simulation weight value
+	defaultWeightMsgCancelSellOrder int = 100
+
+	opWeightMsgCancelBuyOrder = "op_weight_msg_create_chain"
+	// TODO: Determine the simulation weight value
+	defaultWeightMsgCancelBuyOrder int = 100
+
+	// this line is used by starport scaffolding # simapp/module/const
 )
 
 // GenerateGenesisState creates a randomized GenState of the module
@@ -56,6 +68,39 @@ func (am AppModule) RegisterStoreDecoder(_ sdk.StoreDecoderRegistry) {}
 // WeightedOperations returns the all the gov module operations with their respective weights.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
 	operations := make([]simtypes.WeightedOperation, 0)
+
+	var weightMsgPort int
+	simState.AppParams.GetOrGenerate(simState.Cdc, opWeightMsgPort, &weightMsgPort, nil,
+		func(_ *rand.Rand) {
+			weightMsgPort = defaultWeightMsgPort
+		},
+	)
+	operations = append(operations, simulation.NewWeightedOperation(
+		weightMsgPort,
+		dexsimulation.SimulateMsgPort(am.accountKeeper, am.bankKeeper, am.keeper),
+	))
+
+	var weightMsgCancelSellOrder int
+	simState.AppParams.GetOrGenerate(simState.Cdc, opWeightMsgCancelSellOrder, &weightMsgCancelSellOrder, nil,
+		func(_ *rand.Rand) {
+			weightMsgCancelSellOrder = defaultWeightMsgCancelSellOrder
+		},
+	)
+	operations = append(operations, simulation.NewWeightedOperation(
+		weightMsgCancelSellOrder,
+		dexsimulation.SimulateMsgCancelSellOrder(am.accountKeeper, am.bankKeeper, am.keeper),
+	))
+
+	var weightMsgCancelBuyOrder int
+	simState.AppParams.GetOrGenerate(simState.Cdc, opWeightMsgCancelBuyOrder, &weightMsgCancelBuyOrder, nil,
+		func(_ *rand.Rand) {
+			weightMsgCancelBuyOrder = defaultWeightMsgCancelBuyOrder
+		},
+	)
+	operations = append(operations, simulation.NewWeightedOperation(
+		weightMsgCancelBuyOrder,
+		dexsimulation.SimulateMsgCancelBuyOrder(am.accountKeeper, am.bankKeeper, am.keeper),
+	))
 
 	// this line is used by starport scaffolding # simapp/module/operation
 
