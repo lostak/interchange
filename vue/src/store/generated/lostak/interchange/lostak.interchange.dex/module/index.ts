@@ -7,8 +7,8 @@ import { Api } from "./rest";
 import { MsgSendCreatePair } from "./types/dex/tx";
 import { MsgCancelBuyOrder } from "./types/dex/tx";
 import { MsgSendBuyOrder } from "./types/dex/tx";
-import { MsgSendSellOrder } from "./types/dex/tx";
 import { MsgPort } from "./types/dex/tx";
+import { MsgSendSellOrder } from "./types/dex/tx";
 import { MsgCancelSellOrder } from "./types/dex/tx";
 
 
@@ -16,8 +16,8 @@ const types = [
   ["/lostak.interchange.dex.MsgSendCreatePair", MsgSendCreatePair],
   ["/lostak.interchange.dex.MsgCancelBuyOrder", MsgCancelBuyOrder],
   ["/lostak.interchange.dex.MsgSendBuyOrder", MsgSendBuyOrder],
-  ["/lostak.interchange.dex.MsgSendSellOrder", MsgSendSellOrder],
   ["/lostak.interchange.dex.MsgPort", MsgPort],
+  ["/lostak.interchange.dex.MsgSendSellOrder", MsgSendSellOrder],
   ["/lostak.interchange.dex.MsgCancelSellOrder", MsgCancelSellOrder],
   
 ];
@@ -54,8 +54,8 @@ const txClient = async (wallet: OfflineSigner, { addr: addr }: TxClientOptions =
     msgSendCreatePair: (data: MsgSendCreatePair): EncodeObject => ({ typeUrl: "/lostak.interchange.dex.MsgSendCreatePair", value: MsgSendCreatePair.fromPartial( data ) }),
     msgCancelBuyOrder: (data: MsgCancelBuyOrder): EncodeObject => ({ typeUrl: "/lostak.interchange.dex.MsgCancelBuyOrder", value: MsgCancelBuyOrder.fromPartial( data ) }),
     msgSendBuyOrder: (data: MsgSendBuyOrder): EncodeObject => ({ typeUrl: "/lostak.interchange.dex.MsgSendBuyOrder", value: MsgSendBuyOrder.fromPartial( data ) }),
-    msgSendSellOrder: (data: MsgSendSellOrder): EncodeObject => ({ typeUrl: "/lostak.interchange.dex.MsgSendSellOrder", value: MsgSendSellOrder.fromPartial( data ) }),
     msgPort: (data: MsgPort): EncodeObject => ({ typeUrl: "/lostak.interchange.dex.MsgPort", value: MsgPort.fromPartial( data ) }),
+    msgSendSellOrder: (data: MsgSendSellOrder): EncodeObject => ({ typeUrl: "/lostak.interchange.dex.MsgSendSellOrder", value: MsgSendSellOrder.fromPartial( data ) }),
     msgCancelSellOrder: (data: MsgCancelSellOrder): EncodeObject => ({ typeUrl: "/lostak.interchange.dex.MsgCancelSellOrder", value: MsgCancelSellOrder.fromPartial( data ) }),
     
   };
