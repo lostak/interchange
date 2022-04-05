@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	clienttypes "github.com/cosmos/ibc-go/v2/modules/core/02-client/types"
@@ -11,7 +12,13 @@ import (
 func (k msgServer) SendCreatePair(goCtx context.Context, msg *types.MsgSendCreatePair) (*types.MsgSendCreatePairResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// TODO: logic before transmitting the packet
+	//Get an order book index
+	pairIndex := types.OrderBookIndex(msg.Port, msg.ChannelID, msg.SourceDenom, msg.TargetDenom)
+	//If order book is found return error
+	_, found := k.GetSellOrderBook(ctx, pairIndex)
+	if found {
+		return &type.MsgSendCreatePairResponse{}, errors.New("the pair already exists")
+	}
 
 	// Construct the packet
 	var packet types.CreatePairPacketData
