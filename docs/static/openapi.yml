@@ -47374,6 +47374,12 @@ definitions:
         type: string
       priceDenom:
         type: string
+  lostak.interchange.dex.MsgSendBuyOrderResponse:
+    type: object
+  lostak.interchange.dex.MsgSendCreatePairResponse:
+    type: object
+  lostak.interchange.dex.MsgSendSellOrderResponse:
+    type: object
   lostak.interchange.dex.Params:
     type: object
     description: Params defines the parameters for the module.
