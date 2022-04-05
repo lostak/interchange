@@ -17,7 +17,7 @@ func (k msgServer) SendCreatePair(goCtx context.Context, msg *types.MsgSendCreat
 	//If order book is found return error
 	_, found := k.GetSellOrderBook(ctx, pairIndex)
 	if found {
-		return &type.MsgSendCreatePairResponse{}, errors.New("the pair already exists")
+		return &types.MsgSendCreatePairResponse{}, errors.New("the pair already exists")
 	}
 
 	// Construct the packet
